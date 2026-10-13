@@ -34,7 +34,7 @@ if (is_post()) {
 }
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Install</title>
 <link href="<?= asset('css/bootstrap@5.3.3/dist/css/bootstrap.min.css') ?>" rel="stylesheet"></head><body class="bg-body-tertiary"><div class="container py-5" style="max-width:720px">
-<h3 class="mb-1">Supermarket RMS - Installer</h3><p class="text-muted">Creates the database, roles/permissions and the first administrator.</p>
+<h3 class="mb-1">DCS Supermarket RMS - Installer</h3><p class="text-muted">Creates the database, roles/permissions and the first administrator.</p>
 <?php if ($done): ?><div class="alert alert-success"><b>Installation complete.</b> <a href="index.php">Go to login</a>. For safety, delete or rename <code>install.php</code>.</div><?php else: ?>
 <?php foreach ($errors as $er): ?><div class="alert alert-danger"><?= htmlspecialchars($er) ?></div><?php endforeach; ?>
 <form method="post" class="card card-body shadow-sm needs-validation" novalidate><?= csrf_field() ?>
