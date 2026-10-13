@@ -1,0 +1,5 @@
+<?php $o = $_SESSION['_old'] ?? []; ?><h4 class="mb-3">New Stock Transfer</h4>
+<form method="post" class="needs-validation" novalidate><?= csrf_field() ?><div class="card card-body mb-3"><div class="row g-3">
+<?php foreach (['from_warehouse_id' => 'From (source)', 'to_warehouse_id' => 'To (destination)'] as $k => $l): ?><div class="col-md-4"><label class="form-label required-star"><?= $l ?></label><select name="<?= $k ?>" class="form-select" required><option value="">--</option><?php foreach ($warehouses as $w): ?><option value="<?= (int)$w['id'] ?>" <?= ($o[$k] ?? '') == $w['id'] ? 'selected' : '' ?>><?= e($w['name']) ?></option><?php endforeach; ?></select></div><?php endforeach; ?>
+<div class="col-md-4"><label class="form-label">Notes</label><input name="notes" class="form-control" maxlength="255" value="<?= e($o['notes'] ?? '') ?>"></div></div></div>
+<?php $withPrice = false; require APP_PATH . '/views/partials/lines.php'; ?><button class="btn btn-primary once">Create transfer</button> <a class="btn btn-link" href="<?= url('transfers/index') ?>">Cancel</a></form>

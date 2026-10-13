@@ -1,0 +1,8 @@
+<h4 class="mb-3">Stocktake</h4>
+<?php if (Auth::can('inventory.stocktake.create')): ?><form method="post" action="<?= url('stocktake/create') ?>" class="card card-body mb-3 row g-2 flex-row needs-validation" novalidate><?= csrf_field() ?>
+<div class="col-md-3"><select name="warehouse_id" class="form-select" required><option value="">Warehouse...</option><?php foreach ($warehouses as $w): ?><option value="<?= (int)$w['id'] ?>"><?= e($w['name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-3"><select name="category_id" class="form-select"><option value="">All categories</option><?php foreach ($categories as $c): ?><option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-4"><input name="notes" class="form-control" maxlength="255" placeholder="Notes"></div><div class="col-md-2"><button class="btn btn-primary w-100 once">Start stocktake</button></div></form><?php endif; ?>
+<div class="card"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>No</th><th>Date</th><th>Warehouse</th><th class="text-end">Items</th><th class="text-end">Variances</th><th>Status</th></tr></thead><tbody>
+<?php foreach ($rows as $r): ?><tr><td><a href="<?= url('stocktake/count', ['id' => $r['id']]) ?>"><?= e($r['st_no']) ?></a></td><td><?= e(fmt_date($r['created_at'])) ?></td><td><?= link_wh($r['warehouse_id'], $r['wname']) ?></td><td class="text-end"><?= (int)$r['items'] ?></td><td class="text-end"><?= (int)$r['variances'] ?></td><td><?= badge($r['status']) ?></td></tr><?php endforeach; ?>
+<?php if (!$rows): ?><tr><td colspan="6" class="text-center text-muted py-3">None.</td></tr><?php endif; ?></tbody></table></div>

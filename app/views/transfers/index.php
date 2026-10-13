@@ -1,0 +1,4 @@
+<div class="d-flex justify-content-between mb-3"><h4>Stock Transfers</h4><?php if (Auth::can('inventory.transfers.create')): ?><a class="btn btn-primary" href="<?= url('transfers/form') ?>"><i class="bi bi-plus-lg"></i> New transfer</a><?php endif; ?></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>No</th><th>Date</th><th>From</th><th>To</th><th>Status</th></tr></thead><tbody>
+<?php foreach ($rows as $r): ?><tr><td><a href="<?= url('transfers/view', ['id' => $r['id']]) ?>"><?= e($r['tr_no']) ?></a></td><td><?= e(fmt_date($r['created_at'])) ?></td><td><?= link_wh($r['from_warehouse_id'], $r['from_name']) ?></td><td><?= link_wh($r['to_warehouse_id'], $r['to_name']) ?></td><td><?= badge($r['status']) ?></td></tr><?php endforeach; ?>
+<?php if (!$rows): ?><tr><td colspan="5" class="text-center text-muted py-3">None.</td></tr><?php endif; ?></tbody></table></div></div>

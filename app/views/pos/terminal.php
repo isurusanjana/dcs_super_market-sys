@@ -1,0 +1,107 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2"><h5 class="mb-0"><i class="bi bi-cart4"></i> POS Terminal <small class="text-muted">&middot; <?= e($s['session_no']) ?> &middot; <?= e($s['counter_name']) ?></small></h5>
+<div class="d-flex gap-2"><div class="dropdown"><button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Held carts <span class="badge text-bg-secondary" id="holdCount"><?= count($holds) ?></span></button><ul class="dropdown-menu dropdown-menu-end p-2" id="holdList" style="min-width:260px">
+<?php foreach ($holds as $h): ?><li class="d-flex gap-1 mb-1" data-id="<?= (int)$h['id'] ?>"><button class="btn btn-sm btn-outline-primary flex-grow-1 text-start resume"><?= e($h['label']) ?> <small class="text-muted"><?= e(fmt_date($h['created_at'], 'H:i')) ?></small></button><button class="btn btn-sm btn-outline-danger discard"><i class="bi bi-x"></i></button></li><?php endforeach; ?>
+<?php if (!$holds): ?><li class="text-muted small px-2" id="noHolds">No held carts</li><?php endif; ?></ul></div><a class="btn btn-sm btn-outline-secondary" href="<?= url('pos/session') ?>">Register</a></div></div>
+<div id="alertBox"></div>
+<?php if (!empty($quick)): ?><div class="mb-2 d-flex flex-wrap gap-1" id="quickKeys"><?php foreach ($quick as $q): ?><button type="button" class="btn btn-sm btn-outline-primary quick" data-p="<?= e(json_encode(['id' => (int)$q['id'], 'name' => $q['name'], 'sku' => $q['sku'], 'sold_by' => $q['sold_by'], 'selling_price' => $q['selling_price']])) ?>"><?= e($q['name']) ?><?= $q['sold_by'] === 'weight' ? ' <i class="bi bi-speedometer"></i>' : '' ?></button><?php endforeach; ?></div><?php endif; ?>
+<div class="row g-3"><div class="col-lg-5">
+  <div class="card mb-3"><div class="card-body"><div class="input-group"><span class="input-group-text"><i class="bi bi-upc-scan"></i></span><input id="q" class="form-control form-control-lg" placeholder="Scan barcode / ISBN or type name, SKU... (F2)" autocomplete="off" autofocus><button class="btn btn-primary" id="goSearch"><i class="bi bi-search"></i></button></div><div class="form-text">Barcode scanners type the code and press Enter - the exact match is added straight to the cart.</div></div></div>
+  <div class="card"><div class="list-group list-group-flush" id="results" style="max-height:60vh;overflow:auto"><div class="list-group-item text-muted">Search results appear here.</div></div></div>
+</div><div class="col-lg-7">
+  <div class="card mb-3"><div class="card-body py-2"><div class="d-flex gap-2 align-items-center"><i class="bi bi-person"></i><div class="flex-grow-1 position-relative"><input id="custQ" class="form-control form-control-sm" placeholder="Customer: name / phone / code (walk-in if empty)" autocomplete="off"><div id="custRes" class="list-group position-absolute w-100 shadow" style="z-index:20"></div></div><button class="btn btn-sm btn-outline-secondary" id="newCust" title="Quick add customer"><i class="bi bi-person-plus"></i></button></div><div id="custInfo" class="small mt-1"></div></div></div>
+  <div class="card"><div class="table-responsive" style="max-height:40vh;overflow:auto"><table class="table table-sm align-middle mb-0" id="cart"><thead class="table-light"><tr><th>Item</th><th style="width:130px">Qty</th><th style="width:110px" class="text-end">Price</th><?php if ($cfg['canDisc']): ?><th style="width:150px">Disc</th><?php endif; ?><th class="text-end" style="width:90px">Total</th><th style="width:36px"></th></tr></thead><tbody></tbody></table></div>
+  <div class="card-body border-top">
+    <div class="row g-2 mb-2"><div class="col-6"><input id="coupon" class="form-control form-control-sm" placeholder="Coupon code"></div>
+    <?php if ($cfg['canDisc']): ?><div class="col-6"><div class="input-group input-group-sm"><select id="cdType" class="form-select" style="max-width:70px"><option value="percent">%</option><option value="amount">Amt</option></select><input id="cdVal" type="number" min="0" step="0.01" class="form-control" placeholder="Cart discount"></div></div><?php endif; ?></div>
+    <div id="approvalBox"></div>
+    <table class="table table-sm mb-2"><tr><td>Subtotal</td><td class="text-end" id="tSub">0.00</td></tr><tr><td>Discount</td><td class="text-end text-danger" id="tDisc">0.00</td></tr><tr><td>Tax</td><td class="text-end" id="tTax">0.00</td></tr><tr class="fs-4 fw-bold"><td>TOTAL</td><td class="text-end" id="tTotal">0.00</td></tr></table>
+    <div class="d-flex gap-2"><button class="btn btn-outline-warning" id="holdBtn"><i class="bi bi-pause-circle"></i> Hold</button><button class="btn btn-outline-danger" id="clearBtn"><i class="bi bi-trash"></i> Clear</button><button class="btn btn-success flex-grow-1 btn-lg" id="payBtn" disabled><i class="bi bi-cash-coin"></i> Pay (F9)</button></div></div></div>
+</div></div>
+<div class="modal fade" id="payModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Payment</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+<div class="d-flex justify-content-between fs-4 mb-2"><span>Total due</span><b id="pDue">0.00</b></div><div id="payRows"></div>
+<div class="d-flex flex-wrap gap-1 mb-2"><button class="btn btn-sm btn-outline-primary" data-add="cash">+ Cash</button><button class="btn btn-sm btn-outline-primary" data-add="card">+ Card</button><button class="btn btn-sm btn-outline-primary" data-add="bank_transfer">+ Bank</button><button class="btn btn-sm btn-outline-primary" data-add="digital">+ Digital</button><button class="btn btn-sm btn-outline-secondary" data-add="gift_card">+ Gift card</button><button class="btn btn-sm btn-outline-secondary" data-add="loyalty">+ Points</button><button class="btn btn-sm btn-outline-secondary" data-add="exchange_credit">+ Exchange credit</button></div>
+<table class="table table-sm mb-0"><tr><td>Paid</td><td class="text-end" id="pPaid">0.00</td></tr><tr><td>Change</td><td class="text-end text-success fw-bold" id="pChange">0.00</td></tr><tr><td>On credit (customer account)</td><td class="text-end text-danger fw-bold" id="pCredit">0.00</td></tr></table><div id="payErr" class="text-danger small mt-2"></div></div>
+<div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button><button class="btn btn-success" id="confirmPay">Confirm payment</button></div></div></div></div>
+<div class="modal fade" id="wtModal" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">Enter weight</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="wtName" class="mb-2 fw-bold"></div><div class="input-group"><input id="wtVal" type="number" step="0.001" min="0.001" class="form-control form-control-lg" placeholder="0.000"><span class="input-group-text">kg</span></div><div id="wtErr" class="text-danger small mt-2"></div></div><div class="modal-footer"><button class="btn btn-primary" id="wtGo">Add to cart</button></div></div></div></div>
+<div class="modal fade" id="apprModal" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">Manager approval</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="apU" class="form-control mb-2" placeholder="Manager username" autocomplete="off"><input id="apP" type="password" class="form-control" placeholder="Password" autocomplete="new-password"><div id="apErr" class="text-danger small mt-2"></div></div><div class="modal-footer"><button class="btn btn-primary" id="apGo">Approve</button></div></div></div></div>
+<?php ob_start(); ?>
+<script>
+(function(){
+var CFG=<?= json_encode($cfg) ?>;var ageChecked=false;function ageOk(){return ageChecked;}
+var cart=[],customer=null,calc=null,heldId=null,payKey=null,timer=null,payments=[];
+var $=function(s){return document.querySelector(s);};
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+function m(n){return (+n||0).toFixed(2);}
+function alertMsg(t,type){$('#alertBox').innerHTML='<div class="alert alert-'+(type||'danger')+' alert-dismissible py-2">'+esc(t)+'<button class="btn-close" data-bs-dismiss="alert"></button></div>';}
+function payload(){return {items:cart.map(function(c){return {product_id:c.product_id,qty:c.qty,price:c.price,disc_type:c.disc_type,disc_value:c.disc_value};}),customer_id:customer?customer.id:null,coupon:$('#coupon').value,cart_disc:CFG.canDisc?{type:$('#cdType').value,value:$('#cdVal').value}:null,held_id:heldId,age_verified:ageOk()};}
+function requote(now){clearTimeout(timer);var go=function(){if(!cart.length){calc=null;render();return;}postJSON('pos/quote',payload()).then(function(r){if(!r.ok){alertMsg(r.error);return;}calc=r;render();});};if(now)go();else timer=setTimeout(go,250);}
+function pushItem(it,qty){var c=cart.find(function(x){return x.product_id==it.id;});if(c)c.qty=Math.round((c.qty+qty)*1000)/1000;else cart.push({product_id:+it.id,name:it.name,sku:it.sku,qty:qty,weight:it.sold_by==='weight',price:'',disc_type:'percent',disc_value:''});$('#alertBox').innerHTML='';render();requote(true);}
+function add(it,qty){if(it.sold_by==='weight'&&!qty){askWeight(it);return;}pushItem(it,qty||it.scan_qty||1);}
+var wtItem=null,wtModal=null;function askWeight(it){wtItem=it;$('#wtName').textContent=it.name+' ('+m(it.selling_price)+' per kg)';$('#wtVal').value='';if(!wtModal)wtModal=new bootstrap.Modal($('#wtModal'));wtModal.show();setTimeout(function(){$('#wtVal').focus();},400);}
+function wtGo(){var v=parseFloat($('#wtVal').value);if(!(v>0)||v>1000){$('#wtErr').textContent='Enter the weight in kg (for example 0.350).';return;}$('#wtErr').textContent='';wtModal.hide();pushItem(wtItem,Math.round(v*1000)/1000);$('#q').focus();}
+function render(){
+ var tb=$('#cart tbody');tb.innerHTML='';
+ cart.forEach(function(c,i){var l=calc&&calc.lines.find(function(x){return x.product_id==c.product_id;});if(l&&l.unit_label){c.weight=true;}var up=l?l.unit_price:'';
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+esc(c.name)+(c.weight?' <span class="badge text-bg-secondary">kg</span>':'')+'<div class="small text-muted">'+esc(c.sku)+(l&&l.promo_name?' <span class="badge text-bg-info">'+esc(l.promo_name)+'</span>':'')+(l&&l.avail<c.qty?' <span class="badge text-bg-danger">stock '+l.avail+'</span>':'')+'</div></td>'+
+  '<td><div class="input-group input-group-sm flex-nowrap" style="width:120px"><button class="btn btn-outline-secondary dec">-</button><input type="number" min="0.001" step="'+(c.weight?'any':'1')+'" class="form-control text-center qty" value="'+c.qty+'"><button class="btn btn-outline-secondary inc">+</button></div></td>'+
+  '<td class="text-end">'+(CFG.canPrice?'<input type="number" step="0.01" min="0" class="form-control form-control-sm text-end price" value="'+(c.price!==''?c.price:up)+'">':m(up))+'</td>'+
+  (CFG.canDisc?'<td><div class="input-group input-group-sm flex-nowrap" style="width:140px"><input type="number" min="0" step="0.01" class="form-control dv" value="'+esc(c.disc_value)+'"><select class="form-select dt" style="max-width:62px"><option value="percent"'+(c.disc_type==='percent'?' selected':'')+'>%</option><option value="amount"'+(c.disc_type==='amount'?' selected':'')+'>Amt</option></select></div></td>':'')+
+  '<td class="text-end">'+(l?m(l.line_total):'')+'</td><td><button class="btn btn-sm btn-outline-danger rm"><i class="bi bi-x"></i></button></td>';
+  tr.querySelector('.rm').onclick=function(){cart.splice(i,1);render();requote(true);};
+  tr.querySelector('.inc').onclick=function(){c.qty=Math.round((c.qty+(c.weight?0.1:1))*1000)/1000;render();requote(true);};
+  tr.querySelector('.dec').onclick=function(){var st=c.weight?0.1:1;if(c.qty-st>0.0005){c.qty=Math.round((c.qty-st)*1000)/1000;render();requote(true);}};
+  tr.querySelector('.qty').onchange=function(){var v=c.weight?parseFloat(this.value):parseInt(this.value);c.qty=v>0?v:(c.weight?0.1:1);requote(true);};
+  var p=tr.querySelector('.price');if(p)p.onchange=function(){c.price=this.value;requote(true);};
+  var dv=tr.querySelector('.dv');if(dv){dv.onchange=function(){c.disc_value=this.value;requote(true);};tr.querySelector('.dt').onchange=function(){c.disc_type=this.value;requote(true);};}
+  tb.appendChild(tr);});
+ $('#tSub').textContent=m(calc&&calc.subtotal);$('#tDisc').textContent=m(calc&&calc.discount_total);$('#tTax').textContent=m(calc&&calc.tax_total);$('#tTotal').textContent=m(calc&&calc.total);
+ var ab=$('#approvalBox');ab.innerHTML='';
+ var restricted=!!(calc&&calc.lines.some(function(l){return l.age_restricted;}));if(!restricted)ageChecked=false;
+ if(restricted){ab.innerHTML+='<div class="alert alert-danger py-1 small mb-2"><label class="mb-0"><input type="checkbox" id="ageBox" '+(ageChecked?'checked':'')+'> <b>Age-restricted item (18+)</b> - I have checked the customer\'s ID</label></div>';$('#ageBox').onchange=function(){ageChecked=this.checked;render();};}
+ if(calc&&calc.errors&&calc.errors.length){ab.innerHTML+='<div class="alert alert-warning py-1 small mb-2">'+calc.errors.map(esc).join('<br>')+'</div>';}
+ if(calc&&calc.needs_approval&&!calc.approved){ab.innerHTML+='<div class="alert alert-warning py-1 small mb-2 d-flex justify-content-between align-items-center">Discount above '+CFG.maxPct+'% needs manager approval <button class="btn btn-sm btn-warning" id="needAppr">Approve</button></div>';$('#needAppr').onclick=function(){new bootstrap.Modal($('#apprModal')).show();};}
+ $('#payBtn').disabled=!(calc&&calc.lines.length&&!calc.errors.length&&(!calc.needs_approval||calc.approved)&&calc.total>0&&(!restricted||ageChecked));
+}
+// search
+function doSearch(){var q=$('#q').value.trim();if(!q)return;getJSON('pos/search',{q:q}).then(function(r){if(!r.ok){alertMsg(r.error);return;}
+ if(r.exact&&r.items.length===1){add(r.items[0],r.items[0].scan_qty);$('#q').value='';$('#results').innerHTML='<div class="list-group-item text-success">Added: '+esc(r.items[0].name)+'</div>';return;}
+ var box=$('#results');box.innerHTML='';if(!r.items.length){box.innerHTML='<div class="list-group-item text-muted">No products found.</div>';return;}
+ r.items.forEach(function(it){var a=document.createElement('button');a.className='list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+  a.innerHTML='<span>'+esc(it.name)+'<br><small class="text-muted">'+esc(it.sku)+(it.barcode?' &middot; '+esc(it.barcode):'')+'</small></span><span class="text-end">'+m(it.selling_price)+(it.sold_by==='weight'?' /kg':'')+(it.age_restricted?' <span class="badge text-bg-danger">18+</span>':'')+'<br><span class="badge text-bg-'+(parseFloat(it.avail)>0?'success':'danger')+'">'+parseFloat(it.avail)+' in stock</span></span>';
+  a.onclick=function(){add(it);};box.appendChild(a);});});}
+$('#q').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doSearch();}});$('#goSearch').onclick=doSearch;
+// customer
+var ct;$('#custQ').addEventListener('input',function(){clearTimeout(ct);var q=this.value.trim();if(q===''&&customer){setCustomer(null);}ct=setTimeout(function(){if(q.length<2){$('#custRes').innerHTML='';return;}getJSON('pos/customers',{q:q}).then(function(r){var b=$('#custRes');b.innerHTML='';(r.items||[]).forEach(function(c){var a=document.createElement('button');a.className='list-group-item list-group-item-action py-1';a.innerHTML=esc(c.name)+' <small class="text-muted">'+esc(c.phone||'')+' '+esc(c.group_name||'')+'</small>';a.onclick=function(){setCustomer(c);};b.appendChild(a);});});},250);});
+function setCustomer(c){customer=c;$('#custRes').innerHTML='';$('#custQ').value=c?c.name:'';$('#custInfo').innerHTML=c?('<span class="badge text-bg-light border">'+esc(c.group_name||'No group')+'</span> Points: <b>'+c.loyalty_points+'</b> &middot; Owing: <b>'+m(c.balance)+'</b> / limit '+m(c.credit_limit)):'';requote(true);}
+$('#newCust').onclick=function(){var n=prompt('Customer name');if(!n)return;var p=prompt('Phone (optional)')||'';postJSON('pos/quick_customer',{name:n,phone:p}).then(function(r){if(!r.ok){alertMsg(r.error);return;}setCustomer(r.customer);});};
+['coupon','cdType','cdVal'].forEach(function(id){var e=$('#'+id);if(e)e.addEventListener('change',function(){requote(true);});});
+// hold / resume
+$('#holdBtn').onclick=function(){if(!cart.length)return;var lbl=prompt('Label for this held cart (optional)')||'';postJSON('pos/hold',{items:payload().items,customer:customer,cart_disc:payload().cart_disc,coupon:$('#coupon').value,label:lbl}).then(function(r){if(!r.ok){alertMsg(r.error);return;}location.reload();});};
+$('#clearBtn').onclick=function(){if(cart.length&&!confirm('Clear the cart?'))return;cart=[];heldId=null;calc=null;setCustomer(null);render();};
+$('#holdList').addEventListener('click',function(e){var li=e.target.closest('li[data-id]');if(!li)return;var id=+li.dataset.id;
+ if(e.target.closest('.discard')){if(!confirm('Discard this held cart?'))return;postJSON('pos/discard',{id:id}).then(function(){li.remove();$('#holdCount').textContent=document.querySelectorAll('#holdList li[data-id]').length;});return;}
+ if(e.target.closest('.resume')){if(cart.length&&!confirm('Replace the current cart?'))return;postJSON('pos/resume',{id:id}).then(function(r){if(!r.ok){alertMsg(r.error);return;}var h=r.cart;cart=(h.items||[]).map(function(i){return {product_id:+i.product_id,name:'',sku:'',qty:+i.qty,price:i.price||'',disc_type:i.disc_type||'percent',disc_value:i.disc_value||''};});
+  $('#coupon').value=h.coupon||'';if(CFG.canDisc&&h.cart_disc){$('#cdType').value=h.cart_disc.type||'percent';$('#cdVal').value=h.cart_disc.value||'';}customer=h.customer||null;$('#custQ').value=customer?customer.name:'';
+  li.remove();$('#holdCount').textContent=document.querySelectorAll('#holdList li[data-id]').length;requote(true);setTimeout(function(){if(calc)cart.forEach(function(c){var l=calc.lines.find(function(x){return x.product_id==c.product_id;});if(l){c.name=l.name;c.sku=l.sku;}});render();},600);});}});
+// weight + quick keys
+$('#wtGo').onclick=wtGo;$('#wtVal').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();wtGo();}});
+document.querySelectorAll('.quick').forEach(function(b){b.onclick=function(){add(JSON.parse(b.dataset.p));};});
+// approval
+$('#apGo').onclick=function(){postJSON('pos/approve',{username:$('#apU').value,password:$('#apP').value}).then(function(r){if(!r.ok){$('#apErr').textContent=r.error;return;}$('#apP').value='';bootstrap.Modal.getInstance($('#apprModal')).hide();requote(true);});};
+// payment
+var pm=new bootstrap.Modal($('#payModal'));
+function addPay(method,amt){payments.push({method:method,amount:amt===undefined?'':amt,reference:''});drawPay();}
+function drawPay(){var box=$('#payRows');box.innerHTML='';payments.forEach(function(p,i){var d=document.createElement('div');d.className='input-group input-group-sm mb-1';
+ d.innerHTML='<span class="input-group-text" style="min-width:110px">'+esc(p.method.replace('_',' '))+'</span><input type="number" step="0.01" min="0" class="form-control amt" value="'+esc(p.amount)+'" placeholder="Amount">'+(p.method!=='cash'&&p.method!=='loyalty'?'<input class="form-control ref" maxlength="80" placeholder="'+(p.method==='exchange_credit'?'Return no (RET-...)':(p.method==='gift_card'?'Gift card code':'Reference'))+'" value="'+esc(p.reference)+'">':'')+'<button class="btn btn-outline-danger rm"><i class="bi bi-x"></i></button>';
+ d.querySelector('.amt').oninput=function(){p.amount=this.value;sum();};var r=d.querySelector('.ref');if(r)r.oninput=function(){p.reference=this.value;};d.querySelector('.rm').onclick=function(){payments.splice(i,1);drawPay();};box.appendChild(d);});sum();}
+function sum(){var due=calc?calc.total:0,paid=payments.reduce(function(s,p){return s+(+p.amount||0);},0);$('#pDue').textContent=m(due);$('#pPaid').textContent=m(paid);$('#pChange').textContent=m(Math.max(0,paid-due));$('#pCredit').textContent=m(Math.max(0,due-paid));}
+$('#payBtn').onclick=function(){payKey='k'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);payments=[];addPay('cash',calc.total.toFixed(2));$('#payErr').textContent='';pm.show();};
+document.querySelectorAll('[data-add]').forEach(function(b){b.onclick=function(){var due=calc.total,paid=payments.reduce(function(s,p){return s+(+p.amount||0);},0);addPay(b.dataset.add,Math.max(0,due-paid).toFixed(2));};});
+$('#confirmPay').onclick=function(){var btn=this;btn.disabled=true;var body=payload();body.key=payKey;body.payments=payments.filter(function(p){return +p.amount>0;});
+ postJSON('pos/checkout',body).then(function(r){btn.disabled=false;if(!r.ok){$('#payErr').textContent=r.error;return;}pm.hide();window.open(r.receipt,'_blank');cart=[];heldId=null;calc=null;setCustomer(null);$('#coupon').value='';if($('#cdVal'))$('#cdVal').value='';render();
+  alertMsg('Sale completed.'+(r.change>0?' Change due: '+m(r.change):''),'success');$('#q').focus();}).catch(function(){btn.disabled=false;$('#payErr').textContent='Network error - the sale was not confirmed. Check Transactions before retrying.';});};
+document.addEventListener('keydown',function(e){if(e.key==='F2'){e.preventDefault();$('#q').focus();}if(e.key==='F9'&&!$('#payBtn').disabled){e.preventDefault();$('#payBtn').click();}});
+render();
+})();
+</script><?php $scripts = ob_get_clean(); ?>

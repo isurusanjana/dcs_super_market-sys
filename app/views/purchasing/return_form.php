@@ -1,0 +1,6 @@
+<?php $o = $_SESSION['_old'] ?? []; ?><h4 class="mb-3">New Purchase Return</h4>
+<form method="post" class="needs-validation" novalidate><?= csrf_field() ?><div class="card card-body mb-3"><div class="row g-3">
+<div class="col-md-4"><label class="form-label required-star">Supplier</label><select name="supplier_id" class="form-select" required><option value="">--</option><?php foreach ($suppliers as $s): ?><option value="<?= (int)$s['id'] ?>" <?= ($o['supplier_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-4"><label class="form-label required-star">Return from warehouse</label><select name="warehouse_id" class="form-select"><?php foreach ($warehouses as $w): ?><option value="<?= (int)$w['id'] ?>"><?= e($w['name']) ?></option><?php endforeach; ?></select></div>
+<div class="col-md-4"><label class="form-label required-star">Reason</label><input name="reason" class="form-control" required minlength="3" maxlength="255" value="<?= e($o['reason'] ?? '') ?>"></div></div></div>
+<?php require APP_PATH . '/views/partials/lines.php'; ?><button class="btn btn-primary once">Submit return</button> <a class="btn btn-link" href="<?= url('purchasing/returns') ?>">Cancel</a></form>

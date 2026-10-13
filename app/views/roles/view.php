@@ -1,0 +1,4 @@
+<div class="d-flex justify-content-between mb-3"><h4><?= e($title) ?></h4><a class="btn btn-outline-secondary" href="<?= url('roles/index') ?>"><i class="bi bi-arrow-left"></i> Back</a></div>
+<?php foreach ($defs as $mod => $m): ?><div class="card mb-3"><div class="card-header"><b><?= e($m['label']) ?></b></div><div class="table-responsive"><table class="table table-sm mb-0"><tbody>
+<?php foreach ($m['features'] as $feat => [$flabel, $actions]): ?><tr><td style="width:240px"><?= e($flabel) ?></td><td>
+<?php foreach ($actions as $act => $al): $on = $role['is_super'] || in_array("$mod.$feat.$act", $granted, true); ?><span class="badge text-bg-<?= $on ? 'success' : 'light border text-muted' ?> me-1"><?= e($al) ?></span><?php endforeach; ?></td></tr><?php endforeach; ?></tbody></table></div></div><?php endforeach; ?>

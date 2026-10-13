@@ -1,0 +1,10 @@
+2026-10-12T16:27:12+05:30 PDOException: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: NO) in F:\projects\dcs_super_market-sys\app\core\DB.php:7
+Stack trace:
+#0 F:\projects\dcs_super_market-sys\app\core\DB.php(7): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 F:\projects\dcs_super_market-sys\app\core\DB.php(14): DB::pdo()
+#2 F:\projects\dcs_super_market-sys\app\core\DB.php(17): DB::q('SELECT COUNT(*)...', Array)
+#3 F:\projects\dcs_super_market-sys\app\core\Auth.php(22): DB::val('SELECT COUNT(*)...', Array)
+#4 F:\projects\dcs_super_market-sys\app\controllers\AuthController.php(7): Auth::attempt('sanjana', 'Sanjana123')
+#5 F:\projects\dcs_super_market-sys\app\core\Controller.php(17): AuthController->action_login()
+#6 F:\projects\dcs_super_market-sys\index.php(12): Controller->run('login')
+#7 {main}

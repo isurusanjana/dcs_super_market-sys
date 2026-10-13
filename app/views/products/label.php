@@ -1,0 +1,11 @@
+<div class="d-flex justify-content-between mb-3"><h4><?= e($p['name']) ?></h4><a class="btn btn-outline-secondary" href="javascript:history.back()"><i class="bi bi-arrow-left"></i> Back</a></div>
+<div class="row"><div class="col-md-6"><div class="card card-body text-center">
+<?php if ($p['barcode']): ?><div class="mb-2"><?= Barcode::svg($p['barcode'], 70, 2) ?></div>
+  <div class="text-muted small"><?= Barcode::valid13($p['barcode']) ? 'EAN-13' : 'Code 39' ?> &middot; SKU <?= e($p['sku']) ?> &middot; <?= e(money($p['selling_price'])) ?></div>
+  <form method="post" action="<?= url('products/print') ?>" class="row g-2 justify-content-center mt-3"><?= csrf_field() ?><input type="hidden" name="qty[<?= (int)$p['id'] ?>]" id="qtyh" value="1">
+    <div class="col-auto"><label class="form-label small mb-0">Copies</label><input type="number" min="1" max="200" value="1" class="form-control form-control-sm" style="width:90px" oninput="document.getElementById('qtyh').value=this.value"></div>
+    <div class="col-auto"><label class="form-label small mb-0">Size</label><select name="size" class="form-select form-select-sm"><option value="small">Small</option><option value="medium" selected>Medium</option><option value="large">Large</option></select></div>
+    <div class="col-auto align-self-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="price" value="1" id="sp" checked><label class="form-check-label small" for="sp">Price</label></div></div>
+    <div class="col-12"><button class="btn btn-primary btn-sm" formtarget="_blank"><i class="bi bi-printer"></i> Print labels</button></div></form>
+<?php else: ?><p class="text-muted">This product has no barcode yet.</p><?php endif; ?>
+<?php if (Auth::can('inventory.products.edit') && !($p['product_type'] === 'book' && $p['isbn'])): ?><form method="post" action="<?= url('products/regenerate', ['id' => $p['id']]) ?>" class="mt-3" data-confirm="<?= $p['barcode'] ? 'Replace the existing barcode? Already printed labels will no longer match.' : 'Generate a barcode?' ?>"><?= csrf_field() ?><button class="btn btn-outline-warning btn-sm"><i class="bi bi-upc-scan"></i> <?= $p['barcode'] ? 'Generate new barcode' : 'Generate barcode' ?></button></form><?php endif; ?></div></div></div>

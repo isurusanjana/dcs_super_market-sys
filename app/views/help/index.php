@@ -1,0 +1,10 @@
+<div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="mb-0"><i class="bi bi-question-circle"></i> User Guide</h4><div class="text-muted">Help for every part of the system. Open a guide in a new tab, or download it to read or print.</div></div><a class="btn btn-outline-secondary" href="javascript:history.back()"><i class="bi bi-arrow-left"></i> Back</a></div>
+<div class="row g-3 mb-4">
+<?php foreach ($guides as $k => $g): ?><div class="col-md-6"><div class="card h-100 shadow-sm"><div class="card-body"><div class="d-flex gap-3"><div class="tile-icon bg-primary-subtle text-primary-emphasis flex-shrink-0"><i class="bi <?= e($g['icon']) ?>"></i></div><div>
+<h5><?= e($g['title']) ?></h5><p class="text-muted mb-3"><?= e($g['desc']) ?></p>
+<?php if ($g['ok']): ?><a class="btn btn-primary btn-sm" target="_blank" href="<?= url('help/file', ['f' => $k]) ?>"><i class="bi bi-box-arrow-up-right"></i> Open guide</a> <a class="btn btn-outline-secondary btn-sm" href="<?= url('help/file', ['f' => $k, 'download' => 1]) ?>"><i class="bi bi-download"></i> Download PDF (<?= e($g['size']) ?> MB)</a>
+<?php else: ?><span class="badge text-bg-warning">Not installed - ask your administrator to copy the PDF into the "help" folder</span><?php endif; ?></div></div></div></div></div><?php endforeach; ?></div>
+<div class="card"><div class="card-header">Quick tips</div><div class="card-body"><div class="row g-3">
+<div class="col-md-4"><b><i class="bi bi-keyboard"></i> POS shortcuts</b><div class="small text-muted">F2 - search / scan box<br>F9 - open the payment window</div></div>
+<div class="col-md-4"><b><i class="bi bi-link-45deg"></i> Quick links</b><div class="small text-muted">Names with a dotted underline (suppliers, products, customers, warehouses...) are links - click one to jump to that record.</div></div>
+<div class="col-md-4"><b><i class="bi bi-person-lock"></i> Can't see something?</b><div class="small text-muted">Menu items and buttons only show what your role allows. Ask your manager to change your role.</div></div></div></div></div>

@@ -1,0 +1,10 @@
+<div class="d-flex justify-content-between mb-3"><h4>Attendance</h4><a class="btn btn-outline-secondary" href="<?= url('attendance/history') ?>"><i class="bi bi-clock-history"></i> History</a></div>
+<form method="get" class="row g-2 mb-3"><input type="hidden" name="r" value="attendance/index"><div class="col-auto"><input type="date" class="form-control" name="date" value="<?= e($date) ?>" max="<?= date('Y-m-d') ?>"></div><div class="col-auto"><button class="btn btn-outline-secondary">Load</button></div></form>
+<form method="post" action="<?= url('attendance/save') ?>"><?= csrf_field() ?><input type="hidden" name="date" value="<?= e($date) ?>">
+<div class="card"><div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead class="table-light"><tr><th>Employee</th><th style="width:150px">Status</th><th style="width:120px">In</th><th style="width:120px">Out</th><th>Note</th></tr></thead><tbody>
+<?php foreach ($emps as $r): $id = (int)$r['id']; ?><tr><td><?= e($r['emp_no'] . ' - ' . $r['full_name']) ?></td>
+<td><select class="form-select form-select-sm" name="status[<?= $id ?>]"><option value="">--</option><?php foreach (['present', 'absent', 'late', 'leave', 'half_day'] as $s): ?><option value="<?= $s ?>" <?= $r['status'] === $s ? 'selected' : '' ?>><?= ucwords(str_replace('_', ' ', $s)) ?></option><?php endforeach; ?></select></td>
+<td><input type="time" class="form-control form-control-sm" name="in[<?= $id ?>]" value="<?= e(substr((string)$r['check_in'], 0, 5)) ?>"></td><td><input type="time" class="form-control form-control-sm" name="out[<?= $id ?>]" value="<?= e(substr((string)$r['check_out'], 0, 5)) ?>"></td>
+<td><input class="form-control form-control-sm" name="note[<?= $id ?>]" maxlength="255" value="<?= e($r['note']) ?>"></td></tr><?php endforeach; ?>
+<?php if (!$emps): ?><tr><td colspan="5" class="text-center text-muted py-3">No active employees.</td></tr><?php endif; ?></tbody></table></div></div>
+<?php if (Auth::can('admin.attendance.record') && $emps): ?><button class="btn btn-primary mt-3 once"><i class="bi bi-check-lg"></i> Save attendance</button><?php endif; ?></form>

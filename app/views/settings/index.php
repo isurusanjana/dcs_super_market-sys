@@ -1,0 +1,4 @@
+<h4 class="mb-3">System Settings</h4>
+<form method="post" class="card card-body needs-validation" novalidate><?= csrf_field() ?><div class="row g-3">
+<?php foreach ($defs as $k => [$l, $r]): ?><div class="col-md-6"><label class="form-label <?= str_contains($r, 'required') ? 'required-star' : '' ?>"><?= e($l) ?></label><input name="<?= e($k) ?>" class="form-control <?= isset($errors[$k]) ? 'is-invalid' : '' ?>" value="<?= e($vals[$k]) ?>" <?= str_contains($r, 'required') ? 'required' : '' ?> <?= Auth::can('admin.settings.edit') ? '' : 'readonly' ?>><div class="invalid-feedback"><?= e($errors[$k] ?? 'Invalid value.') ?></div></div><?php endforeach; ?></div>
+<?php if (Auth::can('admin.settings.edit')): ?><div class="mt-3"><button class="btn btn-primary once"><i class="bi bi-check-lg"></i> Save settings</button></div><?php endif; ?></form>
