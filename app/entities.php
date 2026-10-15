@@ -199,7 +199,7 @@ return [
         'fields' => [['name' => 'name', 'label' => 'Publisher name', 'type' => 'text', 'rules' => 'required|max:150', 'unique' => true], $active]],
     'units' => ['title' => 'Units', 'table' => 'units', 'perm' => 'inventory.categories', 'order' => 't.name', 'list' => ['name' => 'Unit', 'short_name' => 'Short'], 'search' => ['t.name'],
         'fields' => [['name' => 'name', 'label' => 'Unit name', 'type' => 'text', 'rules' => 'required|max:40', 'unique' => true], ['name' => 'short_name', 'label' => 'Short name', 'type' => 'text', 'rules' => 'required|max:10']]],
-    'products' => ['title' => 'All Products', 'table' => 'products', 'perm' => 'inventory.products', 'order' => 't.name', 'from' => $productFrom, 'cols' => $productCols, 'where' => 't.is_archived=0',
+    'products' => ['title' => 'All Products', 'table' => 'products', 'perm' => 'inventory.products', 'order' => 't.created_at', 'from' => $productFrom, 'cols' => $productCols, 'where' => 't.is_archived=0',
         'archive' => true, 'links' => $productLinks, 'list' => $productList + [], 'search' => ['t.name', 't.sku', 't.barcode', 't.isbn'], 'filters' => $productFilters, 'row_actions' => $productActions, 'fields' => $allFields],
     'books' => ['title' => 'Books', 'table' => 'products', 'perm' => 'inventory.books', 'order' => 't.name', 'from' => $productFrom, 'cols' => $productCols, 'where' => "t.is_archived=0 AND t.product_type='book'",
         'archive' => true, 'force' => ['product_type' => 'book'], 'search' => ['t.name', 't.isbn', 't.sku', 't.barcode', 'a.name', 'pu.name'], 'filters' => $productFilters, 'row_actions' => $productActions,

@@ -41,6 +41,7 @@ $cur = $_GET['r'] ?? ''; $curE = $_GET['e'] ?? '';
   <main class="flex-grow-1 p-3 p-lg-4">
     <?php foreach (flashes() as [$t, $m]): ?><div class="alert alert-<?= e($t) ?> alert-dismissible fade show no-print" role="alert"><?= e($m) ?><button class="btn-close" data-bs-dismiss="alert"></button></div><?php endforeach; ?>
     <?= $content ?>
+    <!-- <div class="bottom-div text-center text-muted mt-4 no-print"><small><b>Powered by <a href="https://dcs.ct.ws/" target="_blank">DCS Tech</a></b>  </small></div> -->
   </main>
 </div>
 <script src="<?= asset('js/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js') ?>"></script>
